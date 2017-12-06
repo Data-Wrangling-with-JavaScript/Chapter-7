@@ -10,9 +10,9 @@ const papaparse = require('papaparse');
 var openCsvOutputStream = outputFilePath => {
 
     let firstOutput = true;
-    let fileOutputStream = fs.createWriteStream(outputFilePath); // Create stream for writing the output file.
+    const fileOutputStream = fs.createWriteStream(outputFilePath); // Create stream for writing the output file.
     
-    let csvOutputStream = new stream.Writable({ objectMode: true }); // Create stream for writing data records, note that 'object mode' is enabled.
+    const csvOutputStream = new stream.Writable({ objectMode: true }); // Create stream for writing data records, note that 'object mode' is enabled.
     csvOutputStream._write = (chunk, encoding, callback) => { // Handle writes to the stream.
         var outputCSV = papaparse.unparse(chunk, { 
             header: firstOutput

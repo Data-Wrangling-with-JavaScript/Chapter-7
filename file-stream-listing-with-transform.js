@@ -1,0 +1,29 @@
+'use require';
+
+//
+// An example of Node.js file streaming with a transformation.
+//
+
+const fs = require('fs');
+const stream = require('stream');
+
+const fileInputStream = fs.createReadStream('./data/weather-stations.csv'); // Create stream for reading the input file.
+const fileOutputStream = fs.createWriteStream('./output/streamed-output-file.csv'); // Create stream for writing the output file.
+
+//
+// Create a stream that transforms chunks of data as they are incrementally processed.
+//
+var transformStream = () => {
+    const transformStream = new stream.Transform();
+    transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
+        var transformedChunk = inputChunk.toString().toLowerCase(); // Transform the chunk.
+        transformStream.push(transformedChunk); // Pass the converted chunk to the output stream.
+        callback();
+    };
+    return transformStream;
+};
+
+
+fileInputStream
+    .pipe(transformStream()) // Pipe the file stream through a transformation.
+    .pipe(fileOutputStream);
