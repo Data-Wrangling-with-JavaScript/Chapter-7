@@ -2,6 +2,7 @@
 
 const bfj = require('bfj');
 const fs = require('fs');
+const stream = require('stream');
 
 let transformRow = inputRow => {
     // Your code here to transform a record.
@@ -13,58 +14,95 @@ let transformData = inputData => {
     return inputData.map(inputRow);
 };
 
-let inputStream = fs.createReadStream("./data/weather-stations.json");
+//
+// Open a streaming JSON file for input.
+//
+var openJsonInputStream = inputFilePath => {
 
-let outputStream = fs.createWriteStream('./output/transformed-json.json');
-outputStream.write("[\n");
+    const jsonInputStream = new stream.Readable({ objectMode: true });
+    jsonInputStream._read = () => {}; // Must include, otherwise we get an error.
 
-let curObject = null;
-let curProperty = null;
-let numRecords = 0;
+    const fileInputStream = fs.createReadStream(inputFilePath);
 
-const emitter = bfj.walk(inputStream);
+    let curObject = null;
+    let curProperty = null;
 
-emitter.on(bfj.events.object, () => {
-    curObject = {};
-});
+    const emitter = bfj.walk(fileInputStream);
 
-emitter.on(bfj.events.property, name => {
-    curProperty = name;
-});
+    emitter.on(bfj.events.object, () => {
+        curObject = {};
+    });
 
-let onValue = value => {
-    curObject[curProperty] = value;
-    curProperty = null;
+    emitter.on(bfj.events.property, name => {
+        curProperty = name;
+    });
+
+    let onValue = value => {
+        curObject[curProperty] = value;
+        curProperty = null;
+    };
+
+    emitter.on(bfj.events.string, onValue);
+    emitter.on(bfj.events.number, onValue);
+    emitter.on(bfj.events.literal, onValue);
+
+    emitter.on(bfj.events.endObject, () => {
+        jsonInputStream.push(curObject); // Push results as they are streamed from the file.
+
+        curObject = null; // Finished processing this object.
+    });
+
+    emitter.on(bfj.events.endArray, () => {
+        jsonInputStream.push(null); // Signify end of stream.
+    });
+
+    emitter.on(bfj.events.error, err => {
+        jsonInputStream.emit('error', err);
+    });
+
+    return jsonInputStream;
 };
 
-emitter.on(bfj.events.string, onValue);
-emitter.on(bfj.events.number, onValue);
-emitter.on(bfj.events.literal, onValue);
+//
+// Open a streaming JSON file for output.
+//
+var openJsonOutputStream = outputFilePath => {
 
-emitter.on(bfj.events.endObject, () => {
+    let fileOutputStream = fs.createWriteStream(outputFilePath);
+    fileOutputStream.write("[\n");
 
-    if (numRecords > 0) {
-        outputStream.write(",\n");
-    }
+    var numRecords = 0;
+    
+    let jsonOutputStream = new stream.Writable({ objectMode: true });
+    jsonOutputStream._write = (chunk, encoding, callback) => {
+        if (numRecords > 0) {
+            fileOutputStream.write(",\n");
+        }
+        
+        // Output a single row of a JSON array.
+        // Note: don't include indentation when working a big file.
+        // I only include indentation here when testing the code on a small file.
+        let jsonData = JSON.stringify(curObject, null, 4);  //fio: get rid of indentation
+        fileOutputStream.write(jsonData + '\n');
+        numRecords += chunk.length;
+        callback();        
+    };
+    jsonOutputStream._destroy = () => {
+        fileOutputStream.end();
+    };
 
-    // Output a single row of a JSON array.
-    // Note: don't include indentation when working a big file.
-    // I only include indentation here when testing the code on a small file.
-    let jsonData = JSON.stringify(curObject, null, 4); 
-    outputStream.write(jsonData + '\n');
+    return jsonOutputStream;
+};
 
-    curObject = null;
-    ++numRecords;
-});
+//todo: add transform stream
 
-emitter.on(bfj.events.endArray, () => {
-    outputStream.end();
-
-    console.log("Processed " + numRecords + " records.");
-});
-
-emitter.on(bfj.events.error, err => {
-    console.error("Error occurred transforming JSON file.");
-    console.error(err);
-});
-
+//
+// Use Node.js streams to pipe the content of one CSV file to another.
+//
+openJsonInputStream('./data/weather-stations.json')
+    //todo: .pipe(convertTemperatureStream())
+    .pipe(openJsonOutputStream('./output/transformed-json.json'))
+    .on('error', err => {
+        console.error("An error occurred while transforming the JSON file.");
+        console.error(err);
+    });
