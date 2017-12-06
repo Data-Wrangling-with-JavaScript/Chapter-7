@@ -21,10 +21,11 @@ var openCsvOutputStream = outputFilePath => {
         firstOutput = false; 
         callback();        
     };
-    csvOutputStream._destroy = () => { // When the CSV stream is closed, close the output file stream.
-        fileOutputStream.end();
-    };
 
+    csvOutputStream.on('finish', () => { // When the CSV stream is finished, close the output file stream.
+        fileOutputStream.end();
+    });
+    
     return csvOutputStream;
 };
 

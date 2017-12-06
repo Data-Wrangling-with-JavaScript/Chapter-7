@@ -19,6 +19,7 @@
   "homepage": "https://github.com/JavaScript-Data-Wrangling/Chapter-7#readme",
   "dependencies": {
     "bfj": "5.0.0",
+    "mongodb": "3.0.0-rc0",
     "papaparse": "4.3.6"
   }
 }
