@@ -1,75 +1,8 @@
 'use strict';
 
-const papaparse = require('papaparse');
-const fs = require('fs');
 const stream = require('stream');
-
-var transformRow = inputRow => {
-    // Your code here to transform a record.
-    return inputRow;
-}
-
-var transformData = inputData => {
-    // Your code here to transform a batch of records.
-    //TODO: sort this out!
-    return inputData.map(inputRow);
-};
-
-//
-// Open a streaming CSV file for input.
-//
-var openCsvInputStream = inputFilePath => {
-
-    const csvInputStream = new stream.Readable({ objectMode: true });
-    csvInputStream._read = () => {}; // Must include, otherwise we get an error.
-
-    const fileInputStream = fs.createReadStream(inputFilePath);
-    papaparse.parse(fileInputStream, {
-        header: true,     
-        dynamicTyping: true,
-
-        // We may not need this, but don't want to get halfway through the massive file before realising it is needed.
-        skipEmptyLines: true, 
-
-        step: (results) => {
-            csvInputStream.push(results.data); // Push results as they are streamed from the file.
-        },
-
-        complete: () => {
-            csvInputStream.push(null); // Signify end of stream.
-        },
-
-        error: (err) => {
-            csvInputStream.emit('error', err);
-        }
-    });    
-
-    return csvInputStream;
-};
-
-//
-// Open a streaming CSV file for output.
-//
-var openCsvOutputStream = outputFilePath => {
-
-    let firstOutput = true;
-    let fileOutputStream = fs.createWriteStream(outputFilePath);
-    
-    let csvOutputStream = new stream.Writable({ objectMode: true });
-    csvOutputStream._write = (chunk, encoding, callback) => {
-        var outputCSV = papaparse.unparse(chunk, { 
-            header: firstOutput
-        });
-        fileOutputStream.write(outputCSV + '\n');
-        firstOutput = false; 
-        callback();        
-    };
-    csvOutputStream._destroy = () => {
-        fileOutputStream.end();
-    };
-
-    return csvOutputStream;
-};
+const openCsvInputStream = require('./toolkit/open-csv-input-stream');
+const openCsvOutputStream = require('./toolkit/open-csv-output-stream');
 
 //
 // Convert the temperature for a single record.
@@ -77,40 +10,49 @@ var openCsvOutputStream = outputFilePath => {
 //
 // https://earthscience.stackexchange.com/questions/5015/what-is-celsius-degrees-to-tenths
 //
-var convertTemperature = inputRecord => {
+var transformRow = inputRow => {
 
-    const outputRecord = Object.assign({}, inputRecord); // Clone record, prefer not to modify source data.
+    // Your code here to transform a row of data.
 
-    if (typeof(outputRecord.MinTemp) === 'number') {
-        outputRecord.MinTemp /= 10;
+    const outputRow = Object.assign({}, inputRow); // Clone record, prefer not to modify source data.
+
+    if (typeof(outputRow.MinTemp) === 'number') {
+        outputRow.MinTemp /= 10;
     }
     else {
-        outputRecord.MinTemp = undefined;
+        outputRow.MinTemp = undefined;
     }
 
-    if (typeof(outputRecord.MaxTemp) === 'number') {
-        outputRecord.MaxTemp /= 10;
+    if (typeof(outputRow.MaxTemp) === 'number') {
+        outputRow.MaxTemp /= 10;
     }
     else {
-        outputRecord.MaxTemp = undefined;
+        outputRow.MaxTemp = undefined;
     }
 
-    return outputRecord;
+    return outputRow;
+};
+
+//
+// Transform a data set (in this case a chunk of rows).
+//
+var transformData = inputData => {
+    // Your code here to transform a batch of rows.
+    return inputData.map(transformRow);
 };
 
 //
 // Create a stream that converts the temperature for all records that pass through the stream.
 //
 var convertTemperatureStream = () => {
-    const transformStream = new stream.Transform({ objectMode: true });
+    const transformStream = new stream.Transform({ objectMode: true }); // Create a bidirectional stream in 'object mode'.
     transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
-        var outputChunk = inputChunk.map(convertTemperature);
+        var outputChunk = transformData(inputChunk); // Transform the chunk.
         transformStream.push(outputChunk); // Pass the converted chunk to the output stream.
         callback();
     };
     return transformStream;
 };
-
 
 //
 // Use Node.js streams to pipe the content of one CSV file to another.
