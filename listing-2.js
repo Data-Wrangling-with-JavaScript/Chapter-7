@@ -78,11 +78,11 @@ var openJsonOutputStream = outputFilePath => {
         if (numRecords > 0) {
             fileOutputStream.write(",\n");
         }
-        
+
         // Output a single row of a JSON array.
         // Note: don't include indentation when working a big file.
         // I only include indentation here when testing the code on a small file.
-        let jsonData = JSON.stringify(curObject, null, 4);  //fio: get rid of indentation
+        let jsonData = JSON.stringify(curObject, null, 4);  //TODO: get rid of indentation
         fileOutputStream.write(jsonData + '\n');
         numRecords += chunk.length;
         callback();        
