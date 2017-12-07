@@ -1,21 +1,36 @@
 'use strict';
 
-var MongoClient = require('mongodb').MongoClient;
-MongoClient.connect('mongodb://localhost')
-    .then(client => {
-        var db = client.db('weather_stations');
-        var collection = db.collection('daily_readings');
+//
+// Open the connection to the database.
+//
+function openDatabase () {
+    var MongoClient = require('mongodb').MongoClient;
+    return MongoClient.connect('mongodb://localhost')
+        .then(client => {
+            var db = client.db('weather_stations');
+            var collection = db.collection('daily_readings');
+            return {
+                collection: collection,
+                close: () => {
+                    return client.close();
+                },
+            };
+        });
+};
+
+openDatabase()
+    .then(db => {
         var query = { // Define our database query
             Year: {
                 $gte: 2000, // Year >= 2000
             },
         };
-        return collection.find(query) // Retreive records since the year 2000.
+        return db.collection.find(query) // Retreive records since the year 2000.
             .toArray()
             .then(data => {
                 console.log(data);
             })
-            .then(() => client.close()); // Close database when done.
+            .then(() => db.close()); // Close database when done.
     })
     .then(() => {
         console.log("Done.");

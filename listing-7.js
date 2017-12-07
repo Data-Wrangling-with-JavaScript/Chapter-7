@@ -22,13 +22,28 @@ var readDatabase = cursor => {
         });
 };
 
-var MongoClient = require('mongodb').MongoClient;
-MongoClient.connect('mongodb://localhost')
-    .then(client => {
-        var db = client.db('weather_stations');
-        var collection = db.collection('daily_readings');
-        return readDatabase(collection.find()) // NOTE: You could use a query here.
-            .then(() => client.close()); // Close database when done.
+//
+// Open the connection to the database.
+//
+function openDatabase () {
+    var MongoClient = require('mongodb').MongoClient;
+    return MongoClient.connect('mongodb://localhost')
+        .then(client => {
+            var db = client.db('weather_stations');
+            var collection = db.collection('daily_readings');
+            return {
+                collection: collection,
+                close: () => {
+                    return client.close();
+                },
+            };
+        });
+};
+
+openDatabase()
+    .then(db => {
+        return readDatabase(db.collection.find()) // NOTE: You could use a query here.
+            .then(() => db.close()); // Close database when done.
     })
     .then(() => {
         console.log("Displayed " + numRecords + " records.");

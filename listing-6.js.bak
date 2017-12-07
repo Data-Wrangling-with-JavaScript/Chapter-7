@@ -59,7 +59,6 @@ function openDatabase () {
 
 openDatabase()
     .then(db => {
-		var pageSize = 100;
         return readDatabase(db.collection, 0, pageSize)
             .then(() => {
                 return db.close(); // Close database when done.
