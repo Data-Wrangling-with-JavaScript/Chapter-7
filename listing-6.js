@@ -42,7 +42,7 @@ var readDatabase = (collection, startPageIndex, pageSize) => {
 //
 // Open the connection to the database.
 //
-function openDatabase () {
+let openDatabase = () => {
     var MongoClient = require('mongodb').MongoClient;
     return MongoClient.connect('mongodb://localhost')
         .then(client => {

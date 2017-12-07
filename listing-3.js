@@ -4,6 +4,9 @@ const stream = require('stream');
 const openCsvInputStream = require('./toolkit/open-csv-input-stream');
 const openCsvOutputStream = require('./toolkit/open-csv-output-stream');
 
+const inputFile = './data/weather-stations.csv';
+const outputFilePath = './output/transformed-csv.csv';
+
 //
 // Convert the temperature for a single record.
 // Converts from 'tenths of degress celcius' to 'degrees celcius'.
@@ -57,9 +60,9 @@ var convertTemperatureStream = () => {
 //
 // Use Node.js streams to pipe the content of one CSV file to another.
 //
-openCsvInputStream('./data/weather-stations.csv')
+openCsvInputStream(inputFilePath)
     .pipe(convertTemperatureStream())
-    .pipe(openCsvOutputStream('./output/transformed-csv.csv'))
+    .pipe(openCsvOutputStream(outputFilePath))
     .on('error', err => {
         console.error("An error occurred while transforming the CSV file.");
         console.error(err);

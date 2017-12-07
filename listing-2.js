@@ -7,8 +7,11 @@
 const fs = require('fs');
 const stream = require('stream');
 
-const fileInputStream = fs.createReadStream('./data/weather-stations.csv'); // Create stream for reading the input file.
-const fileOutputStream = fs.createWriteStream('./output/streamed-output-file.csv'); // Create stream for writing the output file.
+const inputFile = './data/weather-stations.csv';
+const outputFilePath = './output/streamed-output-file.csv';
+
+const fileInputStream = fs.createReadStream(inputFilePath); // Create stream for reading the input file.
+const fileOutputStream = fs.createWriteStream(outputFilePath); // Create stream for writing the output file.
 
 //
 // Create a stream that transforms chunks of data as they are incrementally processed.
@@ -22,7 +25,6 @@ var transformStream = () => {
     };
     return transformStream;
 };
-
 
 fileInputStream
     .pipe(transformStream()) // Pipe the file stream through a transformation.

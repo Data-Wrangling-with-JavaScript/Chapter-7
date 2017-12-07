@@ -1,106 +1,64 @@
 'use strict';
 
-const bfj = require('bfj');
-const fs = require('fs');
 const stream = require('stream');
+const openJsonInputStream = require('./toolkit/open-json-input-stream.js');
+const openJsonOutputStream = require('./toolkit/open-json-output-stream.js');
 
-let transformRow = inputRow => {
-    // Your code here to transform a record.
-    return inputRow;
-}
+//
+// Convert the temperature for a single record.
+// Converts from 'tenths of degress celcius' to 'degrees celcius'.
+//
+// https://earthscience.stackexchange.com/questions/5015/what-is-celsius-degrees-to-tenths
+//
+var transformRow = inputRow => {
 
-let transformData = inputData => {
-    // Your code here to transform a batch of records.
-    return inputData.map(inputRow);
+    // Your code here to transform a row of data.
+
+    const outputRow = Object.assign({}, inputRow); // Clone record, prefer not to modify source data.
+
+    if (typeof(outputRow.MinTemp) === 'number') {
+        outputRow.MinTemp /= 10;
+    }
+    else {
+        outputRow.MinTemp = undefined;
+    }
+
+    if (typeof(outputRow.MaxTemp) === 'number') {
+        outputRow.MaxTemp /= 10;
+    }
+    else {
+        outputRow.MaxTemp = undefined;
+    }
+
+    return outputRow;
 };
 
 //
-// Open a streaming JSON file for input.
+// Transform a data set (in this case a chunk of rows).
 //
-var openJsonInputStream = inputFilePath => {
-
-    const jsonInputStream = new stream.Readable({ objectMode: true });
-    jsonInputStream._read = () => {}; // Must include, otherwise we get an error.
-
-    const fileInputStream = fs.createReadStream(inputFilePath);
-
-    let curObject = null;
-    let curProperty = null;
-
-    const emitter = bfj.walk(fileInputStream);
-
-    emitter.on(bfj.events.object, () => {
-        curObject = {};
-    });
-
-    emitter.on(bfj.events.property, name => {
-        curProperty = name;
-    });
-
-    let onValue = value => {
-        curObject[curProperty] = value;
-        curProperty = null;
-    };
-
-    emitter.on(bfj.events.string, onValue);
-    emitter.on(bfj.events.number, onValue);
-    emitter.on(bfj.events.literal, onValue);
-
-    emitter.on(bfj.events.endObject, () => {
-        jsonInputStream.push(curObject); // Push results as they are streamed from the file.
-
-        curObject = null; // Finished processing this object.
-    });
-
-    emitter.on(bfj.events.endArray, () => {
-        jsonInputStream.push(null); // Signify end of stream.
-    });
-
-    emitter.on(bfj.events.error, err => {
-        jsonInputStream.emit('error', err);
-    });
-
-    return jsonInputStream;
+var transformData = inputData => {
+    // Your code here to transform a batch of rows.
+    return inputData.map(transformRow);
 };
 
 //
-// Open a streaming JSON file for output.
+// Create a stream that converts the temperature for all records that pass through the stream.
 //
-var openJsonOutputStream = outputFilePath => {
-
-    let fileOutputStream = fs.createWriteStream(outputFilePath);
-    fileOutputStream.write("[\n");
-
-    var numRecords = 0;
-    
-    let jsonOutputStream = new stream.Writable({ objectMode: true });
-    jsonOutputStream._write = (chunk, encoding, callback) => {
-        if (numRecords > 0) {
-            fileOutputStream.write(",\n");
-        }
-
-        // Output a single row of a JSON array.
-        // Note: don't include indentation when working a big file.
-        // I only include indentation here when testing the code on a small file.
-        let jsonData = JSON.stringify(curObject, null, 4);  //TODO: get rid of indentation
-        fileOutputStream.write(jsonData + '\n');
-        numRecords += chunk.length;
-        callback();        
+var convertTemperatureStream = () => {
+    const transformStream = new stream.Transform({ objectMode: true }); // Create a bidirectional stream in 'object mode'.
+    transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
+        var outputChunk = transformData(inputChunk); // Transform the chunk.
+        transformStream.push(outputChunk); // Pass the converted chunk to the output stream.
+        callback();
     };
-    jsonOutputStream._destroy = () => {
-        fileOutputStream.end();
-    };
-
-    return jsonOutputStream;
+    return transformStream;
 };
-
-//todo: add transform stream
 
 //
 // Use Node.js streams to pipe the content of one CSV file to another.
 //
 openJsonInputStream('./data/weather-stations.json')
-    //todo: .pipe(convertTemperatureStream())
+    .pipe(convertTemperatureStream())
     .pipe(openJsonOutputStream('./output/transformed-json.json'))
     .on('error', err => {
         console.error("An error occurred while transforming the JSON file.");
