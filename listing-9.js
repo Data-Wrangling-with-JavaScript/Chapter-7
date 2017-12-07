@@ -5,10 +5,17 @@ MongoClient.connect('mongodb://localhost')
     .then(client => {
         var db = client.db('weather_stations');
         var collection = db.collection('daily_readings');
-        return collection.find() // Retreive only specified fields.
-            .sort({
+        var query = {}; // Retreive all records.
+        var projection = { // This defines the fields to retreive from each record.
+            fields: {
+                _id: 0,
+                Year: 1,
+                Month: 1,
+                Day: 1,
                 Precipitation: 1
-            })
+            }
+        };
+        return collection.find(query, projection) // Retreive only specified fields.
             .toArray()
             .then(data => {
                 console.log(data);

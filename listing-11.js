@@ -1,31 +1,38 @@
-'use strict';
 
-const argv = require('yargs').argv;
-var MongoClient = require('mongodb').MongoClient;
+const dataForge = require('data-forge');
 
-var processData = (collection, skipAmount, limitAmount) => {
-    return collection.find()
-        .skip(skipAmount)
-        .limit(limitAmount)
-        .toArray()
-        .then(data => {
-            console.log(">> Your code to process " + data.length + " records here!"); 
-        });
+//
+// Convert the temperature for a single record.
+// Converts from 'tenths of degress celcius' to 'degrees celcius'.
+//
+// https://earthscience.stackexchange.com/questions/5015/what-is-celsius-degrees-to-tenths
+//
+var transformRow = inputRow => {
+
+    // Your code here to transform a row of data.
+
+    const outputRow = Object.assign({}, inputRow); // Clone record, prefer not to modify source data.
+
+    if (typeof(outputRow.MinTemp) === 'number') {
+        outputRow.MinTemp /= 10;
+    }
+    else {
+        outputRow.MinTemp = undefined;
+    }
+
+    if (typeof(outputRow.MaxTemp) === 'number') {
+        outputRow.MaxTemp /= 10;
+    }
+    else {
+        outputRow.MaxTemp = undefined;
+    }
+
+    return outputRow;
 };
 
-console.log("Processing records " + argv.skip + " to " + (argv.skip + argv.limit));
-
-MongoClient.connect('mongodb://localhost')
-    .then(client => {
-        var db = client.db('weather_stations');
-        var collection = db.collection('daily_readings');
-        return processData(collection, argv.skip, argv.limit) // Process the specified chunk of data.
-            .then(() => client.close()); // Close the database connection swhen done.
-    })
-    .then(() => {
-        console.log("Done processing records " + argv.skip + " to " + (argv.skip + argv.limit));
-    })
-    .catch(err => {
-        console.error("An error occurred processing records " + argv.skip + " to " + (argv.skip + argv.limit));
-        console.error(err);
-    });
+dataForge.readFile('./data/weather-stations.csv')
+    .parseCSV()
+    .parseNumbers(["MinTemp", "MaxTemp"])
+    .select(transformRow)
+    .asCSV()
+    .writeFile('./output/streamed-output-file.csv');
