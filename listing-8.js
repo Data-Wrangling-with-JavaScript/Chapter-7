@@ -1,41 +1,69 @@
 'use strict';
 
+const stream = require('stream');
+const openJsonInputStream = require('./toolkit/open-json-input-stream.js');
+const openJsonOutputStream = require('./toolkit/open-json-output-stream.js');
+
+const inputFilePath = './data/weather-stations.json';
+const outputFilePath = './output/transformed.json';
+
 //
-// Open the connection to the database.
+// Convert the temperature for a single record.
+// Converts from 'tenths of degress celcius' to 'degrees celcius'.
 //
-let openDatabase = () => {
-    var MongoClient = require('mongodb').MongoClient;
-    return MongoClient.connect('mongodb://localhost')
-        .then(client => {
-            var db = client.db('weather_stations');
-            var collection = db.collection('daily_readings');
-            return {
-                collection: collection,
-                close: () => {
-                    return client.close();
-                },
-            };
-        });
+// https://earthscience.stackexchange.com/questions/5015/what-is-celsius-degrees-to-tenths
+//
+function transformRow (inputRow) {
+
+    // Your code here to transform a row of data.
+
+    const outputRow = Object.assign({}, inputRow); // Clone record, prefer not to modify source data.
+
+    if (typeof(outputRow.MinTemp) === 'number') {
+        outputRow.MinTemp /= 10;
+    }
+    else {
+        outputRow.MinTemp = undefined;
+    }
+
+    if (typeof(outputRow.MaxTemp) === 'number') {
+        outputRow.MaxTemp /= 10;
+    }
+    else {
+        outputRow.MaxTemp = undefined;
+    }
+
+    return outputRow;
 };
 
-openDatabase()
-    .then(db => {
-        var query = { // Define our database query
-            Year: {
-                $gte: 2000, // Year >= 2000
-            },
-        };
-        return db.collection.find(query) // Retreive records since the year 2000.
-            .toArray()
-            .then(data => {
-                console.log(data);
-            })
-            .then(() => db.close()); // Close database when done.
-    })
-    .then(() => {
-        console.log("Done.");
-    })
-    .catch(err => {
-        console.error("An error occurred reading the database.");
+//
+// Transform a data set (in this case a chunk of rows).
+//
+function transformData (inputData) {
+    // Your code here to transform a batch of rows.
+    return inputData.map(transformRow);
+};
+
+//
+// Create a stream that converts the temperature for all records that pass through the stream.
+//
+function convertTemperatureStream () {
+    const transformStream = new stream.Transform({ objectMode: true }); // Create a bidirectional stream in 'object mode'.
+    transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
+        var outputChunk = transformData(inputChunk); // Transform the chunk.
+        transformStream.push(outputChunk); // Pass the converted chunk to the output stream.
+        callback();
+    };
+    return transformStream;
+};
+
+//
+// Use Node.js streams to pipe the content of one JSON file to another, transforming the data on the way through.
+//
+openJsonInputStream(inputFilePath)
+    .pipe(convertTemperatureStream())
+    .pipe(openJsonOutputStream(outputFilePath))
+    .on('error', err => {
+        console.error("An error occurred while transforming the JSON file.");
         console.error(err);
     });

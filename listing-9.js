@@ -1,46 +1,48 @@
-'use strict';
+'use strict;'
+
+const dataForge = require('data-forge');
+
+const inputFilePath = './data/weather-stations.csv';
+const outputFilePath = './output/transformed.csv';
 
 //
-// Open the connection to the database.
+// Convert the temperature for a single record.
+// Converts from 'tenths of degress celcius' to 'degrees celcius'.
 //
-let openDatabase = () => {
-    var MongoClient = require('mongodb').MongoClient;
-    return MongoClient.connect('mongodb://localhost')
-        .then(client => {
-            var db = client.db('weather_stations');
-            var collection = db.collection('daily_readings');
-            return {
-                collection: collection,
-                close: () => {
-                    return client.close();
-                },
-            };
-        });
+// https://earthscience.stackexchange.com/questions/5015/what-is-celsius-degrees-to-tenths
+//
+function transformRow (inputRow) {
+
+    // Your code here to transform a row of data.
+
+    const outputRow = Object.assign({}, inputRow); // Clone record, prefer not to modify source data.
+
+    if (typeof(outputRow.MinTemp) === 'number') {
+        outputRow.MinTemp /= 10;
+    }
+    else {
+        outputRow.MinTemp = undefined;
+    }
+
+    if (typeof(outputRow.MaxTemp) === 'number') {
+        outputRow.MaxTemp /= 10;
+    }
+    else {
+        outputRow.MaxTemp = undefined;
+    }
+
+    return outputRow;
 };
 
-openDatabase()
-    .then(db => {
-        var query = {}; // Retreive all records.
-        var projection = { // This defines the fields to retreive from each record.
-            fields: {
-                _id: 0,
-                Year: 1,
-                Month: 1,
-                Day: 1,
-                Precipitation: 1
-            }
-        };
-        return db.collection.find(query, projection) // Retreive only specified fields.
-            .toArray()
-            .then(data => {
-                console.log(data);
-            })
-            .then(() => db.close()); // Close database when done.
-    })
+dataForge.readFileStream(inputFilePath)
+    .parseCSV()
+    .parseNumbers(["MinTemp", "MaxTemp"])
+    .select(transformRow)
+    .asCSV()
+    .writeFileStream(outputFilePath)
     .then(() => {
-        console.log("Done.");
+        console.log("Done");
     })
     .catch(err => {
-        console.error("An error occurred reading the database.");
         console.error(err);
-    });
+    })

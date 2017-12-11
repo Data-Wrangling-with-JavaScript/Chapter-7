@@ -7,7 +7,7 @@ const papaparse = require('papaparse');
 //
 // Open a streaming CSV file for input.
 //
-var openCsvInputStream = inputFilePath => {
+function openCsvInputStream (inputFilePath) {
 
     const csvInputStream = new stream.Readable({ objectMode: true }); // Create a stream that we can read data records from, note that 'object mode' is enabled.
     csvInputStream._read = () => {}; // Must include, otherwise we get an error.

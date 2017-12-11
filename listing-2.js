@@ -7,8 +7,8 @@
 const fs = require('fs');
 const stream = require('stream');
 
-const inputFile = './data/weather-stations.csv';
-const outputFilePath = './output/streamed-output-file.csv';
+const inputFilePath = './data/weather-stations.csv';
+const outputFilePath = './output/transformed.csv';
 
 const fileInputStream = fs.createReadStream(inputFilePath); // Create stream for reading the input file.
 const fileOutputStream = fs.createWriteStream(outputFilePath); // Create stream for writing the output file.
@@ -16,7 +16,7 @@ const fileOutputStream = fs.createWriteStream(outputFilePath); // Create stream 
 //
 // Create a stream that transforms chunks of data as they are incrementally processed.
 //
-var transformStream = () => {
+function transformStream () {
     const transformStream = new stream.Transform();
     transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
         var transformedChunk = inputChunk.toString().toLowerCase(); // Transform the chunk.

@@ -7,7 +7,7 @@ const stream = require('stream');
 //
 // Open a streaming JSON file for input.
 //
-var openJsonInputStream = inputFilePath => {
+function openJsonInputStream (inputFilePath ) {
 
     const jsonInputStream = new stream.Readable({ objectMode: true });
     jsonInputStream._read = () => {}; // Must include, otherwise we get an error.

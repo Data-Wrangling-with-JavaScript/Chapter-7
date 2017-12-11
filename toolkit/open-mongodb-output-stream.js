@@ -6,7 +6,7 @@ var MongoClient = require('mongodb').MongoClient;
 //
 // Open a streaming CSV file for output.
 //
-var openMongodbOutputStream = (config) => {
+function openMongodbOutputStream (config) {
 
     var connection = null; // Connection to database, once connected.
     var db = null;  // Database to store data into, once connected.

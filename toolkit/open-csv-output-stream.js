@@ -7,7 +7,7 @@ const papaparse = require('papaparse');
 //
 // Open a streaming CSV file for output.
 //
-var openCsvOutputStream = outputFilePath => {
+function openCsvOutputStream (outputFilePath) {
 
     let firstOutput = true;
     const fileOutputStream = fs.createWriteStream(outputFilePath); // Create stream for writing the output file.
