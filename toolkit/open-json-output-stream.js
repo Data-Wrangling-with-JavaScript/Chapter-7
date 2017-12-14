@@ -9,27 +9,27 @@ const stream = require('stream');
 function openJsonOutputStream (outputFilePath) {
 
     const fileOutputStream = fs.createWriteStream(outputFilePath);
-    fileOutputStream.write("[\n");
+    fileOutputStream.write("[");
 
     var numRecords = 0;
     
     const jsonOutputStream = new stream.Writable({ objectMode: true });
     jsonOutputStream._write = (chunk, encoding, callback) => {
         if (numRecords > 0) {
-            fileOutputStream.write(",\n");
+            fileOutputStream.write(",");
         }
 
         // Output a single row of a JSON array.
-        // Note: don't include indentation when working a big file.
-        // I only include indentation here when testing the code on a small file.
-        const jsonData = JSON.stringify(curObject, null, 4);  //TODO: get rid of indentation
-        fileOutputStream.write(jsonData + '\n');
+        const jsonData = JSON.stringify(curObject);
+        fileOutputStream.write(jsonData);
         numRecords += chunk.length;
         callback();        
     };
-    jsonOutputStream._destroy = () => {
+
+    jsonOutputStream.on('finish', () => { // When the CSV stream is finished, close the output file stream.
+        fileOutputStream.write("]");
         fileOutputStream.end();
-    };
+    });
 
     return jsonOutputStream;
 };
