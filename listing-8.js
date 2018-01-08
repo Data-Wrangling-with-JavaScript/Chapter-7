@@ -37,20 +37,13 @@ function transformRow (inputRow) {
 };
 
 //
-// Transform a data set (in this case a chunk of rows).
-//
-function transformData (inputData) {
-    // Your code here to transform a batch of rows.
-    return inputData.map(transformRow);
-};
-
-//
 // Create a stream that converts the temperature for all records that pass through the stream.
 //
 function convertTemperatureStream () {
     const transformStream = new stream.Transform({ objectMode: true }); // Create a bidirectional stream in 'object mode'.
     transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
-        var outputChunk = transformData(inputChunk); // Transform the chunk.
+        console.log(inputChunk); //fio:
+        var outputChunk = transformRow(inputChunk); // Transform the chunk.
         transformStream.push(outputChunk); // Pass the converted chunk to the output stream.
         callback();
     };

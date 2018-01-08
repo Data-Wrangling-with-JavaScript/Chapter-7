@@ -16,13 +16,13 @@ function openJsonOutputStream (outputFilePath) {
     const jsonOutputStream = new stream.Writable({ objectMode: true });
     jsonOutputStream._write = (chunk, encoding, callback) => {
         if (numRecords > 0) {
-            fileOutputStream.write(",");
+            fileOutputStream.write(",\n");
         }
 
         // Output a single row of a JSON array.
-        const jsonData = JSON.stringify(curObject);
+        const jsonData = JSON.stringify(chunk);
         fileOutputStream.write(jsonData);
-        numRecords += chunk.length;
+        ++numRecords;
         callback();        
     };
 

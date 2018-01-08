@@ -21,7 +21,9 @@ function openCsvInputStream (inputFilePath) {
         skipEmptyLines: true, 
 
         step: (results) => { // Handles incoming rows of CSV data.
-            csvInputStream.push(results.data); // Push results as they are streamed from the file.
+            for (let row of results.data) {
+                csvInputStream.push(row); // Push results as they are streamed from the file.                
+            }
         },
 
         complete: () => { // File read operation has completed.
