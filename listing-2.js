@@ -28,4 +28,7 @@ function transformStream () {
 
 fileInputStream
     .pipe(transformStream()) // Pipe the file stream through a transformation.
-    .pipe(fileOutputStream);
+    .pipe(fileOutputStream)
+    .on('error', err => {
+        console.error(err);
+    });
