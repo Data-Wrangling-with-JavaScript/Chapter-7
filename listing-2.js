@@ -19,7 +19,7 @@ const fileOutputStream = fs.createWriteStream(outputFilePath); // Create stream 
 function transformStream () {
     const transformStream = new stream.Transform();
     transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
-        var transformedChunk = inputChunk.toString().toLowerCase(); // Transform the chunk.
+        const transformedChunk = inputChunk.toString().toLowerCase(); // Transform the chunk.
         transformStream.push(transformedChunk); // Pass the converted chunk to the output stream.
         callback();
     };

@@ -42,7 +42,7 @@ function transformRow (inputRow) {
 function convertTemperatureStream () {
     const transformStream = new stream.Transform({ objectMode: true }); // Create a bidirectional stream in 'object mode'.
     transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
-        var outputChunk = transformRow(inputChunk); // Transform the chunk.
+        const outputChunk = transformRow(inputChunk); // Transform the chunk.
         transformStream.push(outputChunk); // Pass the converted chunk to the output stream.
         callback();
     };

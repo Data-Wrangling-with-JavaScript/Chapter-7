@@ -11,7 +11,7 @@ function openJsonOutputStream (outputFilePath) {
     const fileOutputStream = fs.createWriteStream(outputFilePath);
     fileOutputStream.write("[");
 
-    var numRecords = 0;
+    let numRecords = 0;
     
     const jsonOutputStream = new stream.Writable({ objectMode: true });
     jsonOutputStream._write = (chunk, encoding, callback) => {
