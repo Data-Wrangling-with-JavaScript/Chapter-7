@@ -4,8 +4,8 @@ const stream = require('stream');
 const openCsvInputStream = require('./toolkit/open-csv-input-stream');
 const openCsvOutputStream = require('./toolkit/open-csv-output-stream');
 
-const inputFilePath = './data/weather-stations.csv';
-const outputFilePath = './output/transformed.csv';
+const inputFilePath = "./data/weather-stations.csv";
+const outputFilePath = "./output/weather-stations-transformed.csv";
 
 //
 // Convert the temperature for a single record.
@@ -19,14 +19,14 @@ function transformRow (inputRow) {
 
     const outputRow = Object.assign({}, inputRow); // Clone record, prefer not to modify source data.
 
-    if (typeof(outputRow.MinTemp) === 'number') {
+    if (typeof(outputRow.MinTemp) === "number") {
         outputRow.MinTemp /= 10;
     }
     else {
         outputRow.MinTemp = undefined;
     }
 
-    if (typeof(outputRow.MaxTemp) === 'number') {
+    if (typeof(outputRow.MaxTemp) === "number") {
         outputRow.MaxTemp /= 10;
     }
     else {
@@ -55,7 +55,7 @@ function convertTemperatureStream () {
 openCsvInputStream(inputFilePath)
     .pipe(convertTemperatureStream())
     .pipe(openCsvOutputStream(outputFilePath))
-    .on('error', err => {
+    .on("error", err => {
         console.error("An error occurred while transforming the CSV file.");
         console.error(err);
     });

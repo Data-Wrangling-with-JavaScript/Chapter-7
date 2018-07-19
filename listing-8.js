@@ -4,8 +4,8 @@ const stream = require('stream');
 const openJsonInputStream = require('./toolkit/open-json-input-stream.js');
 const openJsonOutputStream = require('./toolkit/open-json-output-stream.js');
 
-const inputFilePath = './data/weather-stations.json';
-const outputFilePath = './output/transformed.json';
+const inputFilePath = "./data/weather-stations.json";
+const outputFilePath = "./output/weather-stations-transformed.json";
 
 //
 // Convert the temperature for a single record.
@@ -19,14 +19,14 @@ function transformRow (inputRow) {
 
     const outputRow = Object.assign({}, inputRow); // Clone record, prefer not to modify source data.
 
-    if (typeof(outputRow.MinTemp) === 'number') {
+    if (typeof(outputRow.MinTemp) === "number") {
         outputRow.MinTemp /= 10;
     }
     else {
         outputRow.MinTemp = undefined;
     }
 
-    if (typeof(outputRow.MaxTemp) === 'number') {
+    if (typeof(outputRow.MaxTemp) === "number") {
         outputRow.MaxTemp /= 10;
     }
     else {
@@ -56,7 +56,7 @@ function convertTemperatureStream () {
 openJsonInputStream(inputFilePath)
     .pipe(convertTemperatureStream())
     .pipe(openJsonOutputStream(outputFilePath))
-    .on('error', err => {
+    .on("error", err => {
         console.error("An error occurred while transforming the JSON file.");
         console.error(err);
     });

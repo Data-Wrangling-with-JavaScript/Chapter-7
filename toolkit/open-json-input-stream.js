@@ -47,7 +47,7 @@ function openJsonInputStream (inputFilePath ) {
     });
 
     emitter.on(bfj.events.error, err => {
-        jsonInputStream.emit('error', err);
+        jsonInputStream.emit("error", err);
     });
 
     return jsonInputStream;

@@ -26,7 +26,7 @@ function openJsonOutputStream (outputFilePath) {
         callback();        
     };
 
-    jsonOutputStream.on('finish', () => { // When the CSV stream is finished, close the output file stream.
+    jsonOutputStream.on("finish", () => { // When the CSV stream is finished, close the output file stream.
         fileOutputStream.write("]");
         fileOutputStream.end();
     });

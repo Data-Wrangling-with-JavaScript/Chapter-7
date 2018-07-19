@@ -1,22 +1,22 @@
 {
   "name": "chapter-7",
   "version": "1.0.0",
-  "description": "Code examples for Chapter 7 of JavaScript Data Wrangling.",
+  "description": "Code examples for Chapter 7 of Data Wrangling with JavaScript.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://ashleydavis@github.com/JavaScript-Data-Wrangling/Chapter-7.git"
+    "url": "git+https://ashleydavis@github.com/Data-Wrangling-with-JavaScript/Chapter-7.git"
   },
   "keywords": [],
   "author": "ashley@codecapers.com.au",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/JavaScript-Data-Wrangling/Chapter-7/issues"
+    "url": "https://github.com/Data-Wrangling-with-JavaScript/Chapter-7/issues"
   },
-  "homepage": "https://github.com/JavaScript-Data-Wrangling/Chapter-7#readme",
+  "homepage": "https://github.com/Data-Wrangling-with-JavaScript/Chapter-7#readme",
   "dependencies": {
     "bfj": "5.1.1",
     "data-forge": "0.5.6",

@@ -14,7 +14,7 @@ function openCsvOutputStream (outputFilePath) {
     
     const csvOutputStream = new stream.Writable({ objectMode: true }); // Create stream for writing data records, note that 'object mode' is enabled.
     csvOutputStream._write = (chunk, encoding, callback) => { // Handle writes to the stream.
-        var outputCSV = papaparse.unparse([chunk], { 
+        const outputCSV = papaparse.unparse([chunk], { 
             header: firstOutput
         });
         fileOutputStream.write(outputCSV + '\n');
@@ -22,7 +22,7 @@ function openCsvOutputStream (outputFilePath) {
         callback();        
     };
 
-    csvOutputStream.on('finish', () => { // When the CSV stream is finished, close the output file stream.
+    csvOutputStream.on("finish", () => { // When the CSV stream is finished, close the output file stream.
         fileOutputStream.end();
     });
     

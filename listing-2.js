@@ -7,8 +7,8 @@
 const fs = require('fs');
 const stream = require('stream');
 
-const inputFilePath = './data/weather-stations.csv';
-const outputFilePath = './output/transformed.csv';
+const inputFilePath = "./data/weather-stations.csv";
+const outputFilePath = "./output/weather-stations-transformed.csv";
 
 const fileInputStream = fs.createReadStream(inputFilePath); // Create stream for reading the input file.
 const fileOutputStream = fs.createWriteStream(outputFilePath); // Create stream for writing the output file.
