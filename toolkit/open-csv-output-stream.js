@@ -17,7 +17,7 @@ function openCsvOutputStream (outputFilePath) {
         const outputCSV = papaparse.unparse([chunk], { 
             header: firstOutput
         });
-        fileOutputStream.write(outputCSV + '\n');
+        fileOutputStream.write(outputCSV + "\n");
         firstOutput = false; 
         callback();        
     };

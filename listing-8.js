@@ -5,7 +5,7 @@ const openJsonInputStream = require('./toolkit/open-json-input-stream.js');
 const openJsonOutputStream = require('./toolkit/open-json-output-stream.js');
 
 const inputFilePath = "./data/weather-stations.json";
-const outputFilePath = "./output/weather-stations-transformed.json";
+const outputFilePath = "./output/weather-stations-ftransformed.json";
 
 //
 // Convert the temperature for a single record.
@@ -42,7 +42,6 @@ function transformRow (inputRow) {
 function convertTemperatureStream () {
     const transformStream = new stream.Transform({ objectMode: true }); // Create a bidirectional stream in 'object mode'.
     transformStream._transform = (inputChunk, encoding, callback) => { // Callback to execute on chunks that are input.
-        console.log(inputChunk); //fio:
         var outputChunk = transformRow(inputChunk); // Transform the chunk.
         transformStream.push(outputChunk); // Pass the converted chunk to the output stream.
         callback();
