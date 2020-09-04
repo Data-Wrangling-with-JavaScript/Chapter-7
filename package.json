@@ -19,6 +19,6 @@
   "homepage": "https://github.com/Data-Wrangling-with-JavaScript/Chapter-7#readme",
   "dependencies": {
     "bfj": "5.1.1",
-    "papaparse": "4.3.6"
+    "papaparse": "5.2.0"
   }
 }
